@@ -6,6 +6,8 @@ Authors: Kevin Manalo (GT), Michael Chin (GT)
 
 Purpose: Creation of modules used in development of openmc-depletion.
 
+Compilers: nagfor, ifort
+
 Subroutines needed: 
 
 Compressed Row Storage Insert subroutine - A subroutine that can insert data into arbitrary positions of a CSR matrix.
