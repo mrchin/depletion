@@ -1,8 +1,9 @@
 # compiler
-FC := nagfor
+FC := ifort 
 #
 # compile flags
-FCFLAGS = -g -c -kind=byte
+# FCFLAGS = -g -c -kind=byte
+FCFLAGS = -g -c
 # link flags
 FLFLAGS =
 #

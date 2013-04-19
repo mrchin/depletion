@@ -14,6 +14,19 @@ module sparse_header
 ! n + 1.
 !===============================================================================
 
+!  interface SparseCsr
+!    module procedure SparseCsrComplex, SparseCsrReal
+!  end interface SparseCsr
+
+!  interface sparse_csr_print_values
+!    module procedure sparse_csr_print_complex_values, sparse_csr_print_real_values
+!  end interface sparse_csr_print_values
+
+!  interface sparse_csr_init
+!    module procedure sparse_csr_init_complex, sparse_csr_init_real
+!  end interface sparse_csr_init
+
+
   type SparseCsrComplex
     ! Information about size of matrix
     integer :: m         ! number of rows
@@ -24,14 +37,34 @@ module sparse_header
     ! Storage of locations and values
     integer,    allocatable :: row_ptr(:) ! indices within values array
     integer,    allocatable :: columns(:) ! column indices with non-zeros
-    complex(8), allocatable :: values(:)  ! non-zero values in matrix
+    complex(8), allocatable :: values(:)  ! non-zero complex values in matrix
   contains
     procedure :: init => sparse_csr_init_complex
-    procedure :: expand => sparse_csr_expand_complex
-    procedure :: print_values => sparse_csr_print_values  
-    procedure :: print_dense => sparse_csr_print_dense   
-    procedure :: print_graph => sparse_csr_print_graph   
+!    procedure :: expand => sparse_csr_expand_complex
+    procedure :: print_values => sparse_csr_print_complex_values  
+!    procedure :: print_dense => sparse_csr_print_dense   
+!    procedure :: print_graph => sparse_csr_print_graph   
   end type SparseCsrComplex
+
+  type SparseCsrReal   
+    ! Information about size of matrix
+    integer :: m         ! number of rows
+    integer :: n         ! number of columns
+    integer :: n_nonzero ! number of non-zero elements
+    integer :: n_maximum ! actual maximum number preallocated 2x n_nonzero
+
+    ! Storage of locations and values
+    integer, allocatable :: row_ptr(:) ! indices within values array
+    integer, allocatable :: columns(:) ! column indices with non-zeros
+    real(8), allocatable :: values(:)  ! non-zero real values in matrix
+  contains
+    procedure :: init => sparse_csr_init_real
+!    procedure :: expand => sparse_csr_expand_complex
+    procedure :: print_values => sparse_csr_print_real_values  
+!    procedure :: print_dense => sparse_csr_print_dense   
+!    procedure :: print_graph => sparse_csr_print_graph   
+  end type SparseCsrReal   
+
 
 contains
 
@@ -69,6 +102,36 @@ contains
     A % values = ZERO
 
   end subroutine sparse_csr_init_complex
+
+  subroutine sparse_csr_init_real(A, m, n, n_nonzero)
+
+    class(SparseCsrReal) :: A
+    integer, intent(in)     :: m
+    integer, intent(in)     :: n
+    integer, intent(in)     :: n_nonzero
+
+    ! Set integer constants
+    A % m = m
+    A % n = n
+    A % n_nonzero = n_nonzero
+    A % n_maximum = 2 * n_nonzero
+
+    ! If any components are already allocated, remove that allocation
+    if (allocated(A % row_ptr)) deallocate(A % row_ptr)
+    if (allocated(A % columns)) deallocate(A % columns)
+    if (allocated(A % values)) deallocate(A % values)
+
+    ! Allocate components
+    allocate(A % row_ptr(m + 1))
+    allocate(A % columns(A % n_maximum))
+    allocate(A % values(A % n_maximum))
+
+    ! Initialize component arrays
+    A % row_ptr = 0
+    A % columns = NULL_COLUMN
+    A % values = 0.0
+
+  end subroutine sparse_csr_init_real
 
 !===============================================================================
 ! SPARSE_CSR_EXPAND adds extra space to a row in a sparse matrix. This is used
@@ -132,7 +195,7 @@ contains
 ! This is a routine for debugging.
 !===============================================================================
 
-  subroutine sparse_csr_print_values(A)
+  subroutine sparse_csr_print_complex_values(A)
     class(SparseCsrComplex) :: A
     integer :: i
 
@@ -148,8 +211,24 @@ contains
 
   end subroutine
 
+  subroutine sparse_csr_print_real_values(A)
+    class(SparseCsrReal) :: A
+    integer :: i
+
+    do i = 1, A % n_nonzero
+      write(*,*) A % columns(i), A % values(i)
+    end do
+
+    write(*,*)
+
+    do i = 1, A % m + 1    
+      write(*,*) A % row_ptr(i)
+    end do
+
+  end subroutine
+
 !===============================================================================
-! SPARSE_CSR_PRINT_DENSEF prints the dense matrix form of the sparse matrix   
+! SPARSE_CSR_PRINT_DENSE prints the dense matrix form of the sparse matrix   
 ! This is a routine for debugging.
 !===============================================================================
 
