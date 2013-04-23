@@ -21,7 +21,7 @@ $(PROGRAM): $(SRCS)
 	$(FC) $(FLFLAGS) -o $@ $^
 #
 depletion.o: depletion_header.o sparse_header.o
-sparse.o: sparse_header.o   
+main.o: sparse_header_debug.o
 #
 %.o: %.F90 
 	$(FC) $(FCFLAGS) -o $@ $<

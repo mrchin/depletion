@@ -171,7 +171,7 @@ contains
     ! Set final column ptr
     fill % row_ptr(m+1) = fill % n_nonzero + 1
 
-    call fill % print_values
+    !call fill % print_values
 
     ! ==========================================================================
     ! SYMBOLIC DECOMPOSITION
@@ -301,7 +301,7 @@ contains
       end do
     end do
 
-    call fill % print_values
+    !call fill % print_values
 
   end subroutine symbolic_factorization
 

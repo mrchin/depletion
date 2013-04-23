@@ -14,20 +14,7 @@ module sparse_header
 ! n + 1.
 !===============================================================================
 
-!  interface SparseCsr
-!    module procedure SparseCsrComplex, SparseCsrReal
-!  end interface SparseCsr
-
-!  interface sparse_csr_print_values
-!    module procedure sparse_csr_print_complex_values, sparse_csr_print_real_values
-!  end interface sparse_csr_print_values
-
-!  interface sparse_csr_init
-!    module procedure sparse_csr_init_complex, sparse_csr_init_real
-!  end interface sparse_csr_init
-
-
-  type SparseCsrComplex
+  type :: SparseCsrComplex
     ! Information about size of matrix
     integer :: m         ! number of rows
     integer :: n         ! number of columns
@@ -40,13 +27,10 @@ module sparse_header
     complex(8), allocatable :: values(:)  ! non-zero complex values in matrix
   contains
     procedure :: init => sparse_csr_init_complex
-!    procedure :: expand => sparse_csr_expand_complex
-    procedure :: print_values => sparse_csr_print_complex_values  
-!    procedure :: print_dense => sparse_csr_print_dense   
-!    procedure :: print_graph => sparse_csr_print_graph   
-  end type SparseCsrComplex
+    procedure :: insert => sparse_csr_insert_complex
+  end type
 
-  type SparseCsrReal   
+  type :: SparseCsrReal
     ! Information about size of matrix
     integer :: m         ! number of rows
     integer :: n         ! number of columns
@@ -59,14 +43,10 @@ module sparse_header
     real(8), allocatable :: values(:)  ! non-zero real values in matrix
   contains
     procedure :: init => sparse_csr_init_real
-!    procedure :: expand => sparse_csr_expand_complex
-    procedure :: print_values => sparse_csr_print_real_values  
-!    procedure :: print_dense => sparse_csr_print_dense   
-!    procedure :: print_graph => sparse_csr_print_graph   
-  end type SparseCsrReal   
-
+  end type
 
 contains
+
 
 !===============================================================================
 ! SPARSE_CSR_INIT allocates space for a compressed space row based on the size
@@ -134,6 +114,36 @@ contains
   end subroutine sparse_csr_init_real
 
 !===============================================================================
+! SPARSE_CSR_INSERT inserts a new value to csr sparse matrix. This is used when
+! computing fill-in elements. A new value requires inserting to columns(:),
+! values(:), and adjusting row_ptr(:), and increasing n_nonzero by one.
+! The inputs are traditional row,col,val (regular matrix triplet)
+!===============================================================================
+
+  subroutine sparse_csr_insert_complex(A, row, col, val)
+
+    class(SparseCsrComplex) :: A     ! sparse matrix
+    integer, intent(in)     :: row   ! row to insert using reg. matrix notation
+    integer, intent(in)     :: col   ! col to insert using reg. matrix notation
+    complex, intent(in)     :: val   ! value of item         
+    integer i
+
+    ! Increase the row_ptr values by 1, after the insert point
+    do i = row + 1, A % m + 1
+      print *, 'A % row_ptr(', i,')', ' to increase by 1'
+    end do
+
+    ! Evaluate the columns that are zero in the row of interest
+    do i = A % row_ptr(row), A % row_ptr(row + 1)
+      print *, 'column:', A % columns(i)
+      print *, 'value :', A % values(i)
+    end do
+
+    print *, 'n_nonzero =', A % n_nonzero, ' to increase by 1'
+
+  end subroutine sparse_csr_insert_complex
+
+!===============================================================================
 ! SPARSE_CSR_EXPAND adds extra space to a row in a sparse matrix. This is used
 ! in sparse factorization when fill-in elements are added.
 !===============================================================================
@@ -195,45 +205,82 @@ contains
 ! This is a routine for debugging.
 !===============================================================================
 
-  subroutine sparse_csr_print_complex_values(A)
-    class(SparseCsrComplex) :: A
-    integer :: i
-
-    do i = 1, A % n_nonzero
-      write(*,*) A % columns(i), A % values(i)
-    end do
-
-    write(*,*)
-
-    do i = 1, A % m + 1    
-      write(*,*) A % row_ptr(i)
-    end do
-
-  end subroutine
-
-  subroutine sparse_csr_print_real_values(A)
-    class(SparseCsrReal) :: A
-    integer :: i
-
-    do i = 1, A % n_nonzero
-      write(*,*) A % columns(i), A % values(i)
-    end do
-
-    write(*,*)
-
-    do i = 1, A % m + 1    
-      write(*,*) A % row_ptr(i)
-    end do
-
-  end subroutine
+!  subroutine sparse_csr_print_complex_values(A)
+!    class(SparseCsrComplex) :: A
+!    integer :: i
+!
+!    do i = 1, A % n_nonzero
+!      write(*,*) A % columns(i), A % values(i)
+!    end do
+!
+!    write(*,*)
+!
+!    do i = 1, A % m + 1    
+!      write(*,*) A % row_ptr(i)
+!    end do
+!
+!  end subroutine
+!
+!  subroutine sparse_csr_print_real_values(A)
+!    class(SparseCsrReal) :: A
+!    integer :: i
+!
+!    do i = 1, A % n_nonzero
+!      write(*,*) A % columns(i), A % values(i)
+!    end do
+!
+!    write(*,*)
+!
+!    do i = 1, A % m + 1    
+!      write(*,*) A % row_ptr(i)
+!    end do
+!
+!  end subroutine
 
 !===============================================================================
 ! SPARSE_CSR_PRINT_DENSE prints the dense matrix form of the sparse matrix   
 ! This is a routine for debugging.
 !===============================================================================
 
-  subroutine sparse_csr_print_dense(A)
+  subroutine sparse_csr_print_complex_dense(A)
     class(SparseCsrComplex) :: A
+    integer :: i
+    integer :: col, row
+    logical :: col_nonzero_found
+
+    ! for all columns in dense matrix
+    
+    row = 1
+
+    SEARCH_ROW: do while (row <= A % n)
+
+    col_nonzero_found = .FALSE.
+
+        SEARCH_COL: do col = 1, A % n
+
+        ! perform search
+        do i = A % row_ptr(row) , A % row_ptr(row+1) - 1
+            if (col == A % columns (i)) then
+              print *, row, col, A % values (i), ' i =', i
+              col_nonzero_found = .TRUE.
+              exit 
+            end if
+        end do
+
+        if (.not. col_nonzero_found) print *, row, col, 0
+        col_nonzero_found = .FALSE.
+
+        end do SEARCH_COL
+
+    row = row + 1
+    print *
+
+    end do SEARCH_ROW
+
+  end subroutine
+
+  subroutine sparse_csr_print_real_dense(A)
+    class(SparseCsrReal) :: A
     integer :: i
     integer :: col, row
     logical :: col_nonzero_found
