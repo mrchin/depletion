@@ -1,6 +1,6 @@
 
 program sparse
-use constants, only : ZERO
+!use constants, only : ZERO
 use sparse_header_debug
 use depletion_header
 use depletion
@@ -27,11 +27,41 @@ print *, 'sparse matrix tester'
 
   A % values(1:19) = CMPLX( 1.00000 , 1.00000)
   
-  print *, 'printing values of case 1 matrix'
-  call A % print_values
-  call A % insert( 1, 3, CMPLX( 0.00000 , 0.00000) )
+  !print *, 'printing values of case 1 matrix'
+  !call A % print_values
+  !print *
+  !print *, 'printing values of case 1 matrix augment 1'
+  !call A % insert( 1, 3, CMPLX( 100.00000 , 0.00000) )
+  !call A % print_values
+  !print *
+  !print *, 'printing values of case 1 matrix augment 2a'
+  !call A % insert( 1, 5, CMPLX( 200.00000 , 0.00000) )
+  !call A % print_values
+  !print *
+  !print *, 'printing values of case 1 matrix augment 2b'
+  !call A % insert( 1, 6, CMPLX( 210.00000 , 0.00000) )
+  !call A % print_values
+  !print *
+  !print *, 'printing values of case 1 matrix augment 2c'
+  !call A % insert( 1, 7, CMPLX( 220.00000 , 0.00000) )
+  !call A % print_values
+  !print *
+  !print *, 'printing values of case 1 matrix augment 3a'
+  !call A % insert( 2, 1, CMPLX( 300.00000 , 0.00000) )
+  !call A % print_values
+  !print *
+  !print *, 'printing values of case 1 matrix augment 3b'
+  !call A % insert( 2, 3, CMPLX( 310.00000 , 0.00000) )
+  !call A % print_values
+  !print *
+  !print *, 'printing values of case 1 matrix augment 3c'
+  !call A % insert( 2, 6, CMPLX( 320.00000 , 0.00000) )
+  !call A % print_values
+  !print *, 'printing values of case 1 matrix augment 3c'
+  !call A % insert( 2, 6, CMPLX( 320.00000 , 0.00000) )
+  !call A % print_values
 
-  stop
+  !stop
 
   call B % init ( 6, 6, 19 ) 
 
@@ -55,12 +85,25 @@ print *, 'sparse matrix tester'
   B % values(16) = 13; B % values(17) = 4; B % values(18) = 2
   B % values(19) = -1
 
-!  call A % print_graph  
-!  print *, 'printing values of dense matrix'
-!  call A % print_dense 
-
   print *, 'printing values of case 2 matrix'
   call B % print_values
+  print *
+  print *, 'printing values of case 1 matrix augment 1'
+  call B % insert( 1, 2, 100.00000_8 )
+  call B % print_values
+  print *
+  print *, 'printing values of case 1 matrix augment 2'
+  call B % insert( 1, 6, 200.00000_8 )
+  call B % print_values
+  print *
+  print *, 'printing values of case 1 matrix augment 3'
+  call B % insert( 3, 1, 300.00000_8 )
+  call B % print_values
+  print *
+  print *, 'printing values of case 1 matrix augment 4'
+  call B % insert( 3, 2, 300.00000_8 )
+  call B % print_values
+
 !  print *, 'printing dense values of case 2 matrix'
 !  call B % print_dense 
   stop
